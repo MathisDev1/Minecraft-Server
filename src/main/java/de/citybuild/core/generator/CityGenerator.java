@@ -27,8 +27,8 @@ import java.util.logging.Logger;
  */
 public class CityGenerator {
 
-    /** Default map radius in blocks (can be overridden by config). */
-    private static final int DEFAULT_RADIUS = 1500;
+    /** Default map radius in blocks (500x500 area). */
+    private static final int DEFAULT_RADIUS = 250;
     private static final int TOTAL_PHASES   = 7;
 
     private final JavaPlugin       plugin;
