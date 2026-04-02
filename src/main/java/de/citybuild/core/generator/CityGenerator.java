@@ -88,34 +88,34 @@ public class CityGenerator {
         RoadGenerator    roadGen = new RoadGenerator(seed ^ 0xDEADF00DL, terrain, water);
         PlotSubdivider   plotter = new PlotSubdivider(seed ^ 0xC0FFEE00L, roadGen, water);
 
-        // ── Phase 1: Terrain ──────────────────────────────────────────────────
-        progress(callback, 1, "Forming terrain...");
+        // ── Phase 1: Terrain (0–25%) ──────────────────────────────────────────
+        progress(callback, 1, 0, "Forming terrain...");
         runOnMainThread(() -> terrain.generateTerrain(world, radius));
 
-        // ── Phase 2: Rivers ───────────────────────────────────────────────────
-        progress(callback, 2, "Carving rivers...");
+        // ── Phase 2: Rivers (25–35%) ──────────────────────────────────────────
+        progress(callback, 2, 25, "Carving rivers...");
         runOnMainThread(() -> water.generateRivers(world, radius));
 
-        // ── Phase 3: Lakes ────────────────────────────────────────────────────
-        progress(callback, 3, "Digging lakes...");
+        // ── Phase 3: Lakes (35–42%) ───────────────────────────────────────────
+        progress(callback, 3, 35, "Digging lakes...");
         runOnMainThread(() -> water.generateLakes(world, radius));
 
-        // ── Phase 4: Road layout (pure computation, async) ───────────────────
-        progress(callback, 4, "Planning road network...");
+        // ── Phase 4: Road layout (42–60%, compute, async) ───────────────────
+        progress(callback, 4, 42, "Planning road network...");
         List<RoadSegment> roads = roadGen.generateRoads(radius);
         log.info("[CityGenerator] Road layout complete: " + roads.size() + " segments.");
 
-        // ── Phase 5: Road blocks (main thread) ───────────────────────────────
-        progress(callback, 5, "Paving roads...");
+        // ── Phase 5: Road blocks (60–75%, main thread) ───────────────────────
+        progress(callback, 5, 60, "Paving roads...");
         runOnMainThread(() -> roadGen.placeRoadBlocks(world, roads));
 
-        // ── Phase 6: Plot subdivision (pure computation, async) ───────────────
-        progress(callback, 6, "Subdividing plots...");
+        // ── Phase 6: Plot subdivision (75–92%, compute, async) ───────────────
+        progress(callback, 6, 75, "Subdividing plots...");
         List<Plot> plots = plotter.subdivide(world, radius);
         log.info("[CityGenerator] Plot layout complete: " + plots.size() + " plots.");
 
-        // ── Phase 7: Plot borders (main thread) ──────────────────────────────
-        progress(callback, 7, "Placing plot borders...");
+        // ── Phase 7: Plot borders (92–100%, main thread) ─────────────────────
+        progress(callback, 7, 92, "Placing plot borders...");
         runOnMainThread(() -> plotter.placePlotBorders(world, plots));
 
         // ── Done ──────────────────────────────────────────────────────────────
@@ -157,8 +157,8 @@ public class CityGenerator {
     }
 
     /** Sends a progress event to the callback. */
-    private void progress(GenerationProgressCallback callback, int phase, String message) {
-        log.info("[CityGenerator] Phase " + phase + "/" + TOTAL_PHASES + " — " + message);
+    private void progress(GenerationProgressCallback callback, int phase, int percentage, String message) {
+        log.info("[CityGenerator] Phase " + phase + "/" + TOTAL_PHASES + " (" + percentage + "%) — " + message);
         callback.onProgress(phase, TOTAL_PHASES, message);
     }
 }

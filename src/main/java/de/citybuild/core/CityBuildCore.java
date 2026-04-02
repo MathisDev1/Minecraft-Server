@@ -1,6 +1,7 @@
 package de.citybuild.core;
 
 import de.citybuild.core.api.CityBuildAPI;
+import de.citybuild.core.api.CityBuildAPIImpl;
 import de.citybuild.core.commands.AdminPlotCommand;
 import de.citybuild.core.commands.PlotCommand;
 import de.citybuild.core.commands.SetupCommand;
@@ -61,7 +62,7 @@ public class CityBuildCore extends JavaPlugin {
         spawnManager = new SpawnManager(this, coreConfig);
 
         // 4. API
-        api = new CityBuildAPI(this);
+        api = new CityBuildAPIImpl(this);
         getServer().getServicesManager().register(
             CityBuildAPI.class, api, this, ServicePriority.Normal);
 

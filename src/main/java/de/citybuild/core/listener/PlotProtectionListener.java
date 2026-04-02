@@ -143,6 +143,20 @@ public class PlotProtectionListener implements Listener {
         }
     }
 
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onLiquidFlow(org.bukkit.event.block.BlockFromToEvent event) {
+        Block from = event.getBlock();
+        Block to = event.getToBlock();
+        
+        Plot fromPlot = plugin.getPlotManager().getPlotAt(from.getLocation());
+        Plot toPlot = plugin.getPlotManager().getPlotAt(to.getLocation());
+        
+        // Prevent flow if it enters a different plot or enters a plot from outside
+        if (fromPlot != toPlot) {
+            event.setCancelled(true);
+        }
+    }
+
     // =========================================================================
     // Helpers
     // =========================================================================

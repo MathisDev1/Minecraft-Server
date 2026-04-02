@@ -41,6 +41,8 @@ public class PlotManager {
     private final Map<Integer, Plot>      byId    = new ConcurrentHashMap<>();
     /** Spatial index: "cx:cz" → plots whose bounding box touches that bucket. */
     private final Map<String, List<Plot>> spatial = new ConcurrentHashMap<>();
+    
+    private int nextPlotId = 1;
 
     /**
      * Creates a new PlotManager.
@@ -75,7 +77,11 @@ public class PlotManager {
      * @param plots plots to register
      */
     public void bulkRegisterPlots(List<Plot> plots) {
-        for (Plot plot : plots) registerPlot(plot);
+        for (Plot plot : plots) {
+            registerPlot(plot);
+            if (plot.getId() >= nextPlotId) nextPlotId = plot.getId() + 1;
+        }
+        repository.bulkInsertPlots(plots);
     }
 
     // =========================================================================

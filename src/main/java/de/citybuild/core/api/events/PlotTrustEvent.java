@@ -6,34 +6,38 @@ import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class PlotClaimEvent extends Event implements Cancellable {
+import java.util.UUID;
+
+public class PlotTrustEvent extends Event implements Cancellable {
     private static final HandlerList handlers = new HandlerList();
     private boolean cancelled;
     
-    private final Player player;
+    private final Player owner;
     private final Plot plot;
-    private double price;
+    private final UUID trustedPlayer;
+    private final String trustedPlayerName;
 
-    public PlotClaimEvent(Player player, Plot plot, double price) {
-        this.player = player;
+    public PlotTrustEvent(Player owner, Plot plot, UUID trustedPlayer, String trustedPlayerName) {
+        this.owner = owner;
         this.plot = plot;
-        this.price = price;
+        this.trustedPlayer = trustedPlayer;
+        this.trustedPlayerName = trustedPlayerName;
     }
 
-    public Player getPlayer() {
-        return player;
+    public Player getOwner() {
+        return owner;
     }
 
     public Plot getPlot() {
         return plot;
     }
 
-    public double getPrice() {
-        return price;
+    public UUID getTrustedPlayer() {
+        return trustedPlayer;
     }
 
-    public void setPrice(double price) {
-        this.price = price;
+    public String getTrustedPlayerName() {
+        return trustedPlayerName;
     }
 
     @Override

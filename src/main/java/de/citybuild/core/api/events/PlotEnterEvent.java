@@ -2,22 +2,20 @@ package de.citybuild.core.api.events;
 
 import de.citybuild.core.model.Plot;
 import org.bukkit.entity.Player;
-import org.bukkit.event.Cancellable;
 import org.bukkit.event.Event;
 import org.bukkit.event.HandlerList;
 
-public class PlotClaimEvent extends Event implements Cancellable {
+public class PlotEnterEvent extends Event {
     private static final HandlerList handlers = new HandlerList();
-    private boolean cancelled;
     
     private final Player player;
     private final Plot plot;
-    private double price;
+    private final Plot previousPlot;
 
-    public PlotClaimEvent(Player player, Plot plot, double price) {
+    public PlotEnterEvent(Player player, Plot plot, Plot previousPlot) {
         this.player = player;
         this.plot = plot;
-        this.price = price;
+        this.previousPlot = previousPlot;
     }
 
     public Player getPlayer() {
@@ -28,22 +26,8 @@ public class PlotClaimEvent extends Event implements Cancellable {
         return plot;
     }
 
-    public double getPrice() {
-        return price;
-    }
-
-    public void setPrice(double price) {
-        this.price = price;
-    }
-
-    @Override
-    public boolean isCancelled() {
-        return cancelled;
-    }
-
-    @Override
-    public void setCancelled(boolean cancel) {
-        this.cancelled = cancel;
+    public Plot getPreviousPlot() {
+        return previousPlot;
     }
 
     @Override
