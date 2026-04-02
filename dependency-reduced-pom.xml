@@ -19,10 +19,6 @@
             <configuration>
               <relocations>
                 <relocation>
-                  <pattern>org.sqlite</pattern>
-                  <shadedPattern>de.citybuild.core.libs.sqlite</shadedPattern>
-                </relocation>
-                <relocation>
                   <pattern>com.zaxxer.hikari</pattern>
                   <shadedPattern>de.citybuild.core.libs.hikari</shadedPattern>
                 </relocation>
