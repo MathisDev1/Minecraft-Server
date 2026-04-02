@@ -79,6 +79,14 @@ public class DatabaseManager {
                 cfg.setDriverClassName("org.sqlite.JDBC");
             }
 
+            // Verify driver is available
+            try {
+                Class.forName(cfg.getDriverClassName());
+            } catch (ClassNotFoundException e) {
+                log.severe("Could not find database driver: " + cfg.getDriverClassName());
+                return false;
+            }
+
             cfg.setPoolName("CityBuild-Pool");
             cfg.setConnectionTestQuery("SELECT 1");
             cfg.setConnectionTimeout(10_000);
