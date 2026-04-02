@@ -13,7 +13,6 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Random;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * Generates a three-tier road network: main arteries via MST, secondary branches,
@@ -128,22 +127,24 @@ public class RoadGenerator {
     }
 
     /**
-     * Places all road blocks (pavement, bürgersteig, lamps, bridges, crossings)
-     * into the world.  <strong>Must be called on the main server thread.</strong>
+     * Returns a list of tasks for placing road blocks.
      *
      * @param world target world
      * @param roads the road segments returned by {@link #generateRoads(int)}
+     * @return list of road placement tasks
      */
-    public void placeRoadBlocks(World world, List<RoadSegment> roads) {
-        Logger log = Bukkit.getServer().getLogger();
+    public java.util.List<Runnable> getPlacementTasks(World world, List<RoadSegment> roads) {
+        java.util.List<Runnable> tasks = new java.util.ArrayList<>();
         for (RoadSegment seg : roads) {
-            try {
-                placeSegment(world, seg);
-            } catch (Exception e) {
-                log.warning("[RoadGenerator] Error placing segment " + seg + ": " + e.getMessage());
-            }
+            tasks.add(() -> {
+                try {
+                    placeSegment(world, seg);
+                } catch (Exception e) {
+                    Bukkit.getServer().getLogger().warning("[RoadGenerator] Error placing segment " + seg + ": " + e.getMessage());
+                }
+            });
         }
-        log.info("[RoadGenerator] Road blocks placed (" + roads.size() + " segments).");
+        return tasks;
     }
 
     /**

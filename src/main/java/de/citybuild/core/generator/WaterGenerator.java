@@ -60,60 +60,55 @@ public class WaterGenerator {
     }
 
     /**
-     * Generates rivers from the map edge toward the centre and places all
-     * corresponding blocks (water, gravel bed, sand banks) in the world.
-     *
-     * <p>Must be called on the main server thread.</p>
+     * Returns a list of tasks for carving rivers.
      *
      * @param world     target world
-     * @param mapRadius half-side of the generated region in blocks
+     * @param mapRadius half-side of the region
+     * @return list of river carving tasks
      */
-    public void generateRivers(World world, int mapRadius) {
-        Logger log = Bukkit.getServer().getLogger();
+    public java.util.List<Runnable> getRiverTasks(World world, int mapRadius) {
+        java.util.List<Runnable> tasks = new java.util.ArrayList<>();
         int riverCount = RIVER_COUNT_MIN + rng.nextInt(RIVER_COUNT_MAX - RIVER_COUNT_MIN + 1);
 
         for (int r = 0; r < riverCount; r++) {
-            // Random start angle → position on the map edge
             double angle = rng.nextDouble() * 2 * Math.PI;
             int startX = (int) (Math.cos(angle) * (mapRadius - 100));
             int startZ = (int) (Math.sin(angle) * (mapRadius - 100));
             int width  = RIVER_WIDTH_MIN + rng.nextInt(RIVER_WIDTH_MAX - RIVER_WIDTH_MIN + 1);
 
-            carveRiver(world, startX, startZ, mapRadius, width);
+            tasks.add(() -> carveRiver(world, startX, startZ, mapRadius, width));
         }
-        log.info("[WaterGenerator] Rivers generated.");
+        return tasks;
     }
 
     /**
-     * Generates lakes scattered around the map plus one city pond near (0,0).
-     *
-     * <p>Must be called on the main server thread.</p>
+     * Returns a list of tasks for carving lakes.
      *
      * @param world     target world
-     * @param mapRadius half-side of the generated region in blocks
+     * @param mapRadius half-side of the region
+     * @return list of lake carving tasks
      */
-    public void generateLakes(World world, int mapRadius) {
-        Logger log = Bukkit.getServer().getLogger();
-        int lakeCount = LAKE_COUNT_MIN + rng.nextInt(LAKE_COUNT_MAX - LAKE_COUNT_MIN + 1);
-
-        // City pond near origin
+    public java.util.List<Runnable> getLakeTasks(World world, int mapRadius) {
+        java.util.List<Runnable> tasks = new java.util.ArrayList<>();
+        
+        // City pond task
         int pondRadius = CITY_POND_RADIUS_MIN + rng.nextInt(CITY_POND_RADIUS_MAX - CITY_POND_RADIUS_MIN + 1);
         int pondX = rng.nextInt(60) - 30;
         int pondZ = rng.nextInt(60) - 30;
-        carveLake(world, pondX, pondZ, pondRadius, pondRadius, LAKE_DEPTH_MIN);
+        tasks.add(() -> carveLake(world, pondX, pondZ, pondRadius, pondRadius, LAKE_DEPTH_MIN));
 
         // Outer lakes
+        int lakeCount = LAKE_COUNT_MIN + rng.nextInt(LAKE_COUNT_MAX - LAKE_COUNT_MIN + 1);
         List<int[]> placed = new ArrayList<>();
         int attempts = 0;
-        int placed2  = 0;
-        while (placed2 < lakeCount && attempts < lakeCount * 20) {
+        int placedCount = 0;
+        while (placedCount < lakeCount && attempts < lakeCount * 20) {
             attempts++;
             double angle = rng.nextDouble() * 2 * Math.PI;
             double dist  = LAKE_MIN_DIST + rng.nextDouble() * (mapRadius - LAKE_MIN_DIST - LAKE_RADIUS_MAX - 50);
             int lx = (int) (Math.cos(angle) * dist);
             int lz = (int) (Math.sin(angle) * dist);
 
-            // Ensure lakes don't overlap
             boolean overlap = false;
             for (int[] p : placed) {
                 int dx = p[0] - lx, dz = p[1] - lz;
@@ -127,11 +122,14 @@ public class WaterGenerator {
             int rx    = LAKE_RADIUS_MIN + rng.nextInt(LAKE_RADIUS_MAX - LAKE_RADIUS_MIN + 1);
             int rz    = LAKE_RADIUS_MIN + rng.nextInt(LAKE_RADIUS_MAX - LAKE_RADIUS_MIN + 1);
             int depth = LAKE_DEPTH_MIN  + rng.nextInt(LAKE_DEPTH_MAX  - LAKE_DEPTH_MIN  + 1);
-            carveLake(world, lx, lz, rx, rz, depth);
+            
+            final int finalLx = lx, finalLz = lz, finalRx = rx, finalRz = rz, finalDepth = depth;
+            tasks.add(() -> carveLake(world, finalLx, finalLz, finalRx, finalRz, finalDepth));
+            
             placed.add(new int[]{lx, lz});
-            placed2++;
+            placedCount++;
         }
-        log.info("[WaterGenerator] Lakes generated (" + placed2 + " outer + city pond).");
+        return tasks;
     }
 
     /**

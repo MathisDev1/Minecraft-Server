@@ -89,16 +89,19 @@ public class CityGenerator {
         PlotSubdivider   plotter = new PlotSubdivider(seed ^ 0xC0FFEE00L, roadGen, water);
 
         // ── Phase 1: Terrain (0–25%) ──────────────────────────────────────────
-        progress(callback, 1, 0, "Forming terrain...");
-        runOnMainThread(() -> terrain.generateTerrain(world, radius));
+        progress(callback, 1, 0, "Pre-calculating heightmap...");
+        terrain.precalculateHeightMap(radius); // Async compute
+
+        progress(callback, 1, 5, "Forming terrain (batched)...");
+        runBatched(terrain.getChunkTasks(world, radius), callback, 1, 0, 25);
 
         // ── Phase 2: Rivers (25–35%) ──────────────────────────────────────────
-        progress(callback, 2, 25, "Carving rivers...");
-        runOnMainThread(() -> water.generateRivers(world, radius));
+        progress(callback, 2, 25, "Planning and carving rivers...");
+        runBatched(water.getRiverTasks(world, radius), callback, 2, 25, 35);
 
         // ── Phase 3: Lakes (35–42%) ───────────────────────────────────────────
-        progress(callback, 3, 35, "Digging lakes...");
-        runOnMainThread(() -> water.generateLakes(world, radius));
+        progress(callback, 3, 35, "Planning and digging lakes...");
+        runBatched(water.getLakeTasks(world, radius), callback, 3, 35, 42);
 
         // ── Phase 4: Road layout (42–60%, compute, async) ───────────────────
         progress(callback, 4, 42, "Planning road network...");
@@ -106,8 +109,8 @@ public class CityGenerator {
         log.info("[CityGenerator] Road layout complete: " + roads.size() + " segments.");
 
         // ── Phase 5: Road blocks (60–75%, main thread) ───────────────────────
-        progress(callback, 5, 60, "Paving roads...");
-        runOnMainThread(() -> roadGen.placeRoadBlocks(world, roads));
+        progress(callback, 5, 60, "Paving roads (batched)...");
+        runBatched(roadGen.getPlacementTasks(world, roads), callback, 5, 60, 75);
 
         // ── Phase 6: Plot subdivision (75–92%, compute, async) ───────────────
         progress(callback, 6, 75, "Subdividing plots...");
@@ -115,8 +118,8 @@ public class CityGenerator {
         log.info("[CityGenerator] Plot layout complete: " + plots.size() + " plots.");
 
         // ── Phase 7: Plot borders (92–100%, main thread) ─────────────────────
-        progress(callback, 7, 92, "Placing plot borders...");
-        runOnMainThread(() -> plotter.placePlotBorders(world, plots));
+        progress(callback, 7, 92, "Placing plot borders (batched)...");
+        runBatched(plotter.getBorderTasks(world, plots), callback, 7, 92, 100);
 
         // ── Done ──────────────────────────────────────────────────────────────
         log.info("[CityGenerator] City generation complete.");
@@ -127,38 +130,49 @@ public class CityGenerator {
     // Helpers
     // =========================================================================
 
-    /**
-     * Dispatches a block-placement task to the main thread and blocks the
-     * calling async thread until the task has finished.
-     *
-     * @param task block-placement logic to execute on the main thread
-     * @throws InterruptedException if the async thread is interrupted while waiting
-     */
-    private void runOnMainThread(Runnable task) throws InterruptedException {
-        Object lock  = new Object();
-        boolean[] done = {false};
-
-        Bukkit.getScheduler().runTask(plugin, () -> {
-            try {
-                task.run();
-            } finally {
-                synchronized (lock) {
-                    done[0] = true;
-                    lock.notifyAll();
-                }
-            }
-        });
-
-        synchronized (lock) {
-            while (!done[0]) {
-                lock.wait();
-            }
-        }
-    }
-
     /** Sends a progress event to the callback. */
     private void progress(GenerationProgressCallback callback, int phase, int percentage, String message) {
         log.info("[CityGenerator] Phase " + phase + "/" + TOTAL_PHASES + " (" + percentage + "%) — " + message);
         callback.onProgress(phase, TOTAL_PHASES, message);
+    }
+
+    /**
+     * Executes a list of tasks on the main thread in batches.
+     * Processes 10 tasks per tick by default to keep the server responsive.
+     */
+    private void runBatched(List<Runnable> tasks, GenerationProgressCallback callback, 
+                            int phase, int startPct, int endPct) throws InterruptedException {
+        if (tasks.isEmpty()) return;
+
+        int totalTasks = tasks.size();
+        int tasksPerTick = 10; // Adjust based on performance
+        int[] completed = {0};
+        Object lock = new Object();
+        boolean[] finished = {false};
+
+        Bukkit.getScheduler().runTaskTimer(plugin, task -> {
+            for (int i = 0; i < tasksPerTick && completed[0] < totalTasks; i++) {
+                try {
+                    tasks.get(completed[0]).run();
+                } catch (Exception e) {
+                    log.severe("[CityGenerator] Error in batched task: " + e.getMessage());
+                }
+                completed[0]++;
+            }
+
+            if (completed[0] >= totalTasks) {
+                synchronized (lock) {
+                    finished[0] = true;
+                    lock.notifyAll();
+                }
+                task.cancel();
+            }
+        }, 1L, 1L);
+
+        synchronized (lock) {
+            while (!finished[0]) {
+                lock.wait();
+            }
+        }
     }
 }

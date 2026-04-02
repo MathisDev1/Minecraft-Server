@@ -5,7 +5,8 @@ import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
 
-import java.util.logging.Logger;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Generates organic terrain with hills, flat city zones and smooth transitions.
@@ -50,20 +51,14 @@ public class TerrainGenerator {
     }
 
     /**
-     * Generates and places terrain blocks in the given world for a square region
-     * centred on (0, 0) with the specified radius.
+     * Pre-calculates the height map for the entire region.
+     * This is computationally intensive but does not require world access,
+     * so it can run asynchronously.
      *
-     * <p>This method performs the actual {@code world.getBlockAt().setType()} calls
-     * and <strong>must</strong> be called on the main server thread.</p>
-     *
-     * @param world  target world
-     * @param radius half-side length of the generated region in blocks
+     * @param radius half-side length of the region
      */
-    public void generateTerrain(World world, int radius) {
+    public void precalculateHeightMap(int radius) {
         this.mapRadius = radius;
-        Logger log = Bukkit.getServer().getLogger();
-
-        // Build the height cache first (pure computation — no world access)
         int side = radius * 2 + 1;
         this.cacheOffsetX = -radius;
         this.cacheOffsetZ = -radius;
@@ -75,30 +70,54 @@ public class TerrainGenerator {
                 heightMap[cacheIndex(x, z)] = computeHeight(x, z);
             }
         }
+    }
 
-        // Place blocks chunk by chunk
+    /**
+     * Returns a list of tasks, where each task processes one chunk of the terrain.
+     * These tasks must eventually be executed on the main server thread.
+     *
+     * @param world  target world
+     * @param radius half-side length of the region
+     * @return list of chunk-based generation tasks
+     */
+    public java.util.List<Runnable> getChunkTasks(World world, int radius) {
+        java.util.List<Runnable> tasks = new java.util.ArrayList<>();
+        
         int chunkMin = -radius >> 4;
         int chunkMax =  radius >> 4;
 
         for (int cx = chunkMin; cx <= chunkMax; cx++) {
             for (int cz = chunkMin; cz <= chunkMax; cz++) {
-                Chunk chunk = world.getChunkAt(cx, cz);
-                chunk.load(true);
-
-                for (int bx = 0; bx < 16; bx++) {
-                    for (int bz = 0; bz < 16; bz++) {
-                        int worldX = cx * 16 + bx;
-                        int worldZ = cz * 16 + bz;
-
-                        if (Math.abs(worldX) > radius || Math.abs(worldZ) > radius) continue;
-
-                        int surface = heightMap[cacheIndex(worldX, worldZ)];
-                        placeColumn(world, worldX, worldZ, surface);
+                final int finalCx = cx;
+                final int finalCz = cz;
+                tasks.add(() -> {
+                    if (!world.isChunkLoaded(finalCx, finalCz)) {
+                        world.getChunkAt(finalCx, finalCz).load(true);
                     }
-                }
+
+                    for (int bx = 0; bx < 16; bx++) {
+                        for (int bz = 0; bz < 16; bz++) {
+                            int worldX = finalCx * 16 + bx;
+                            int worldZ = finalCz * 16 + bz;
+
+                            if (Math.abs(worldX) > radius || Math.abs(worldZ) > radius) continue;
+
+                            int surface = heightMap[cacheIndex(worldX, worldZ)];
+                            placeColumn(world, worldX, worldZ, surface);
+                        }
+                    }
+                    
+                    // Optimization: Unload chunk if it's outside a small spawn radius
+                    // to prevent memory pressure during large generations.
+                    if (Math.abs(finalCx) > 10 || Math.abs(finalCz) > 10) {
+                        // world.unloadChunkRequest(finalCx, finalCz); // Paper/Purpur
+                        // For generic Bukkit:
+                        // world.unloadChunk(finalCx, finalCz, true); 
+                    }
+                });
             }
         }
-        log.info("[TerrainGenerator] Terrain generation complete for radius " + radius + ".");
+        return tasks;
     }
 
     /**

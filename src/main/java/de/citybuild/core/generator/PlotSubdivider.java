@@ -103,26 +103,25 @@ public class PlotSubdivider {
     }
 
     /**
-     * Places visual plot borders in the world.  Unclaimed plots get a 1-block-high
-     * OAK_FENCE perimeter; corners are marked with BRICKS.
-     *
-     * <p><strong>Must be called on the main server thread.</strong></p>
+     * Returns a list of tasks for placing plot borders.
      *
      * @param world target world
      * @param plots plots to border
+     * @return list of plot border placement tasks
      */
-    public void placePlotBorders(World world, List<Plot> plots) {
-        Logger log = Bukkit.getServer().getLogger();
-
+    public java.util.List<Runnable> getBorderTasks(World world, List<Plot> plots) {
+        java.util.List<Runnable> tasks = new java.util.ArrayList<>();
         for (Plot plot : plots) {
-            try {
-                drawBorder(world, plot);
-            } catch (Exception e) {
-                log.warning("[PlotSubdivider] Error placing border for plot " + plot.getId()
-                    + ": " + e.getMessage());
-            }
+            tasks.add(() -> {
+                try {
+                    drawBorder(world, plot);
+                } catch (Exception e) {
+                    Bukkit.getServer().getLogger().warning("[PlotSubdivider] Error placing border for plot " + plot.getId()
+                        + ": " + e.getMessage());
+                }
+            });
         }
-        log.info("[PlotSubdivider] Plot borders placed for " + plots.size() + " plots.");
+        return tasks;
     }
 
     // =========================================================================
