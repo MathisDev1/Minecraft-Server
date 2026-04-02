@@ -93,7 +93,7 @@ public class WaterGenerator {
      * @param mapRadius half-side of the generated region in blocks
      */
     public void generateLakes(World world, int mapRadius) {
-        Logger log = world.getServer().getLogger();
+        Logger log = Bukkit.getServer().getLogger();
         int lakeCount = LAKE_COUNT_MIN + rng.nextInt(LAKE_COUNT_MAX - LAKE_COUNT_MIN + 1);
 
         // City pond near origin

@@ -1,0 +1,14 @@
+name: CityBuildEconomy
+version: '1.0.0'
+main: de.citybuild.addon.economy.CityBuildEconomy
+api-version: '1.21'
+depend: [CityBuildCore]
+commands:
+  balance:
+    description: Zeigt das eigene Guthaben an
+    aliases: [money, bal]
+  pay:
+    description: Überweist Geld an einen Spieler
+  eco:
+    description: Admin-Befehl für Economy
+    permission: citybuild.eco.admin

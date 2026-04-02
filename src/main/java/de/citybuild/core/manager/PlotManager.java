@@ -166,7 +166,7 @@ public class PlotManager {
 
         double price = calculatePrice(plot);
 
-        if (plugin.getAPI().hasEconomy() && !plugin.getAPI().hasBalance(player, price)) {
+        if (plugin.getAPI().hasEconomy() && !plugin.getAPI().hasBalance(player.getUniqueId(), price)) {
             return ClaimResult.NOT_ENOUGH_MONEY;
         }
 
@@ -178,7 +178,7 @@ public class PlotManager {
 
         price = event.getPrice();
         if (plugin.getAPI().hasEconomy()) {
-            plugin.getAPI().withdrawBalance(player, price);
+            plugin.getAPI().withdraw(player.getUniqueId(), price);
         }
 
         plot.setOwnerUUID(player.getUniqueId());

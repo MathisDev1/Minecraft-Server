@@ -1,0 +1,25 @@
+﻿[1/3] Baue Plugins (CityBuild Core 
+.\deploy.bat : Der Befehl "Economy)..." ist entweder falsch geschrieben oder
+In Zeile:1 Zeichen:1
++ .\deploy.bat > build_log.txt 2>&1
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo              : NotSpecified: (Der     Befehl "Eco...eschrie    ben oder:String) [], R    emoteException
+    + FullyQualifiedErrorI    d : NativeCommandError
+ 
+konnte nicht gefunden werden.
+[INFO] Scanning for projects...
+[ERROR] [ERROR] Some problems were encountered while processing the POMs:
+[ERROR] 'packaging' with value 'jar' is invalid. Aggregator projects require 'pom' as packaging. @ line 10, column 16
+ @ 
+[ERROR] The build could not read 1 project -> [Help 1]
+[ERROR]   
+[ERROR]   The project de.citybuild:citybuild-core:1.0-SNAPSHOT (C:\Users\User\Documents\Minecraft Server\System\pom.xml) has 1 error
+[ERROR]     'packaging' with value 'jar' is invalid. Aggregator projects require 'pom' as packaging. @ line 10, column 16
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/ProjectBuildingException
+[FEHLER] Maven Build ist fehlgeschlagen.
+Drücken Sie eine beliebige Taste . . . 

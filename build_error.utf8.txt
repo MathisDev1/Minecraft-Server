@@ -1,0 +1,63 @@
+﻿[INFO] Scanning for projects...
+[INFO] 
+[INFO] --------------------< de.citybuild:citybuild-core >---------------------
+[INFO] Building CityBuild Core 1.0-SNAPSHOT
+[INFO]   from pom.xml
+[INFO] --------------------------------[ jar ]---------------------------------
+[INFO] 
+[INFO] --- resources:3.3.1:resources (default-resources) @ citybuild-core ---
+[INFO] Copying 2 resources from src\main\resources to target\classes
+[INFO] 
+[INFO] --- compiler:3.11.0:compile (default-compile) @ citybuild-core ---
+[INFO] Changes detected - recompiling the module! :source
+[INFO] Compiling 36 source files with javac [debug target 17] to target\classes
+[INFO] Die Annotationsverarbeitung ist aktiviert, da mindestens ein Prozessor im
+  Classpath gefunden wurde. In einem zuk├╝nftigen Release von javac kann die Annotationsverarbeitung deaktiviert werden,
+  es sei denn, mindestens ein Prozessor ist namentlich angegeben (-processor), oder ein Suchpfad
+  ist angegeben (--processor-path, --processor-module-path), oder die Annotationsverarbeitung
+  wurde explizit aktiviert (-proc:only, -proc:full).
+  Verwenden Sie "-Xlint:-options", um diese Meldung zu unterdr├╝cken.
+  Verwenden Sie "-proc:none", um die Annotationsverarbeitung zu deaktivieren.
+[INFO] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/config/CoreConfig.java: Einige Eingabedateien verwenden oder ├╝berschreiben eine veraltete API.
+[INFO] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/config/CoreConfig.java: Wiederholen Sie die Kompilierung mit -Xlint:deprecation, um Details zu erhalten.
+[INFO] Einige Meldungen wurden vereinfacht. Wiederholen Sie die Kompilierung mit -Xdiags:verbose, um die vollst├ñndige Ausgabe abzurufen
+[INFO] -------------------------------------------------------------
+[WARNING] COMPILATION WARNING : 
+[INFO] -------------------------------------------------------------
+[WARNING] Systemmodulpfad nicht zusammen mit -source 17 festgelegt
+[INFO] 1 warning
+[INFO] -------------------------------------------------------------
+[INFO] -------------------------------------------------------------
+[ERROR] COMPILATION ERROR : 
+[INFO] -------------------------------------------------------------
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/manager/PlotManager.java:[169,73] Inkompatible Typen: org.bukkit.entity.Player kann nicht in java.util.UUID konvertiert werden
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/manager/PlotManager.java:[181,28] Symbol nicht gefunden
+  Symbol: Methode withdrawBalance(org.bukkit.entity.Player,double)
+  Ort: Schnittstelle de.citybuild.core.api.CityBuildAPI
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/generator/WaterGenerator.java:[96,27] Symbol nicht gefunden
+  Symbol: Methode getServer()
+  Ort: Variable world von Typ org.bukkit.World
+[INFO] 3 errors 
+[INFO] -------------------------------------------------------------
+[INFO] ------------------------------------------------------------------------
+[INFO] BUILD FAILURE
+[INFO] ------------------------------------------------------------------------
+[INFO] Total time:  2.666 s
+[INFO] Finished at: 2026-04-02T15:19:06+02:00
+[INFO] ------------------------------------------------------------------------
+[ERROR] Failed to execute goal org.apache.maven.plugins:maven-compiler-plugin:3.11.0:compile (default-compile) on project citybuild-core: Compilation failure: Compilation failure: 
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/manager/PlotManager.java:[169,73] Inkompatible Typen: org.bukkit.entity.Player kann nicht in java.util.UUID konvertiert werden
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/manager/PlotManager.java:[181,28] Symbol nicht gefunden
+[ERROR]   Symbol: Methode withdrawBalance(org.bukkit.entity.Player,double)
+[ERROR]   Ort: Schnittstelle de.citybuild.core.api.CityBuildAPI
+[ERROR] /C:/Users/User/Documents/Minecraft Server/System/src/main/java/de/citybuild/core/generator/WaterGenerator.java:[96,27] Symbol nicht gefunden
+[ERROR]   Symbol: Methode getServer()
+[ERROR]   Ort: Variable world von Typ org.bukkit.World
+[ERROR] -> [Help 1]
+[ERROR] 
+[ERROR] To see the full stack trace of the errors, re-run Maven with the -e switch.
+[ERROR] Re-run Maven using the -X switch to enable full debug logging.
+[ERROR] 
+[ERROR] For more information about the errors and possible solutions, please read the following articles:
+[ERROR] [Help 1] http://cwiki.apache.org/confluence/display/MAVEN/MojoFailureException
+
