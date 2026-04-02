@@ -1,5 +1,6 @@
 package de.citybuild.core.generator;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 
@@ -68,7 +69,7 @@ public class WaterGenerator {
      * @param mapRadius half-side of the generated region in blocks
      */
     public void generateRivers(World world, int mapRadius) {
-        Logger log = world.getServer().getLogger();
+        Logger log = Bukkit.getServer().getLogger();
         int riverCount = RIVER_COUNT_MIN + rng.nextInt(RIVER_COUNT_MAX - RIVER_COUNT_MIN + 1);
 
         for (int r = 0; r < riverCount; r++) {
@@ -197,8 +198,7 @@ public class WaterGenerator {
 
                         waterBlocks.add(encode(wx, wz));
                     } catch (Exception e) {
-                        world.getServer().getLogger().warning(
-                            "[WaterGenerator] River carve error at " + wx + "," + wz + ": " + e.getMessage());
+                        Bukkit.getConsoleSender().sendMessage("§c[WaterGenerator] River carve error at " + wx + "," + wz + ": " + e.getMessage());
                     }
                 }
             }
@@ -283,8 +283,7 @@ public class WaterGenerator {
 
                     waterBlocks.add(encode(wx, wz));
                 } catch (Exception e) {
-                    world.getServer().getLogger().warning(
-                        "[WaterGenerator] Lake carve error at " + wx + "," + wz + ": " + e.getMessage());
+                    Bukkit.getConsoleSender().sendMessage("§c[WaterGenerator] Lake carve error at " + wx + "," + wz + ": " + e.getMessage());
                 }
             }
         }

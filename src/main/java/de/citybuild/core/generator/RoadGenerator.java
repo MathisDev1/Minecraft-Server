@@ -2,6 +2,7 @@ package de.citybuild.core.generator;
 
 import de.citybuild.core.model.RoadSegment;
 import de.citybuild.core.model.RoadSegment.RoadType;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 
@@ -85,7 +86,7 @@ public class RoadGenerator {
 
         // ── Tier 1: Prim MST main roads ──────────────────────────────────────
         List<int[][]> mstEdges = primMST(centres);
-        List<int[][]> mainEdgeSegs = new ArrayList<>(); // store individual L-segments for Tier 2
+        List<int[]> mainEdgeSegs = new ArrayList<>(); // store individual L-segments for Tier 2
 
         for (int[][] edge : mstEdges) {
             int[] a = edge[0], b = edge[1];
@@ -134,7 +135,7 @@ public class RoadGenerator {
      * @param roads the road segments returned by {@link #generateRoads(int)}
      */
     public void placeRoadBlocks(World world, List<RoadSegment> roads) {
-        Logger log = world.getServer().getLogger();
+        Logger log = Bukkit.getServer().getLogger();
         for (RoadSegment seg : roads) {
             try {
                 placeSegment(world, seg);

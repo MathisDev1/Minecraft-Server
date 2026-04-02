@@ -1,5 +1,6 @@
 package de.citybuild.core.generator;
 
+import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
 import org.bukkit.Material;
 import org.bukkit.World;
@@ -60,7 +61,7 @@ public class TerrainGenerator {
      */
     public void generateTerrain(World world, int radius) {
         this.mapRadius = radius;
-        Logger log = world.getServer().getLogger();
+        Logger log = Bukkit.getServer().getLogger();
 
         // Build the height cache first (pure computation — no world access)
         int side = radius * 2 + 1;
@@ -181,7 +182,7 @@ public class TerrainGenerator {
                 }
             }
         } catch (Exception e) {
-            world.getServer().getLogger().warning(
+            Bukkit.getServer().getLogger().warning(
                 "[TerrainGenerator] Error placing column at " + x + "," + z + ": " + e.getMessage());
         }
     }

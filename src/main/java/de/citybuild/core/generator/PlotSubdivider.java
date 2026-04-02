@@ -1,6 +1,7 @@
 package de.citybuild.core.generator;
 
 import de.citybuild.core.model.Plot;
+import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.World;
 
@@ -111,7 +112,7 @@ public class PlotSubdivider {
      * @param plots plots to border
      */
     public void placePlotBorders(World world, List<Plot> plots) {
-        Logger log = world.getServer().getLogger();
+        Logger log = Bukkit.getServer().getLogger();
 
         for (Plot plot : plots) {
             try {

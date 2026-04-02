@@ -1,0 +1,43 @@
+name: CityBuildCore
+version: '1.0.0'
+main: de.citybuild.core.CityBuildCore
+api-version: '1.21'
+prefix: CityBuild
+
+commands:
+  cbsetup:
+    description: CityBuild Setup & Generation
+    usage: /cbsetup generate [seed]
+    permission: citybuild.admin
+  plot:
+    description: Plot management
+    usage: /plot <buy|sell|info|setspawn|trust|untrust|kick|ban|unban|list|near|name>
+    aliases: [p, grundstueck]
+  spawn:
+    description: Teleport to spawn
+    usage: /spawn [plot]
+  adminplot:
+    description: Admin plot management
+    usage: /adminplot <reset|delete|info|setspawn|reload|stats>
+    aliases: [ap]
+    permission: citybuild.admin
+
+permissions:
+  citybuild.admin:
+    description: Access to admin commands and bypass all plot protection
+    default: op
+  citybuild.bypass:
+    description: Bypass plot protection checks
+    default: op
+  citybuild.plot.buy:
+    description: Allows buying plots
+    default: true
+  citybuild.plot.sell:
+    description: Allows selling plots
+    default: true
+  citybuild.plot.trust:
+    description: Allows trusting players on owned plots
+    default: true
+  citybuild.plot.setspawn:
+    description: Allows setting a custom spawn on owned plots
+    default: true
