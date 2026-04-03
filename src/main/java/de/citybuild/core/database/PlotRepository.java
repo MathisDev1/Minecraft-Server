@@ -136,8 +136,8 @@ public class PlotRepository {
                     ps.setNull(10,  java.sql.Types.NULL); // owner_uuid
                     ps.setNull(11,  java.sql.Types.NULL); // owner_name
                     ps.setNull(12,  java.sql.Types.NULL); // plot_name
-                    ps.setDouble(13, 0.0);                // price
-                    ps.setInt(14,   0);                   // for_sale
+                    ps.setDouble(13, plot.getPrice());
+                    ps.setInt(14,   plot.isForSale() ? 1 : 0);
                     ps.setNull(15,  java.sql.Types.NULL); // claimed_at
                     ps.setDouble(16, 0.0);                // spawn_x
                     ps.setDouble(17, 64.0);               // spawn_y

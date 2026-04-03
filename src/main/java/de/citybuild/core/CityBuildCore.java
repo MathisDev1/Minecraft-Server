@@ -14,6 +14,7 @@ import de.citybuild.core.listener.BlockInteractListener;
 import de.citybuild.core.listener.PlayerJoinListener;
 import de.citybuild.core.listener.PlayerMoveListener;
 import de.citybuild.core.listener.PlotProtectionListener;
+import de.citybuild.core.listener.PlotSignListener;
 import de.citybuild.core.manager.PlotManager;
 import de.citybuild.core.manager.SpawnManager;
 import de.citybuild.core.model.Plot;
@@ -83,6 +84,7 @@ public class CityBuildCore extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new PlayerJoinListener(this, moveListener), this);
         getServer().getPluginManager().registerEvents(new BlockInteractListener(this), this);
         getServer().getPluginManager().registerEvents(new PlotInfoGUI.GuiListener(), this);
+        getServer().getPluginManager().registerEvents(new PlotSignListener(this), this);
 
         // 7. Load existing world, or wait for /cbsetup
         World cityWorld = Bukkit.getWorld(coreConfig.getWorldName());

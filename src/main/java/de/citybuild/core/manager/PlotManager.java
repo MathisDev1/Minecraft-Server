@@ -384,7 +384,7 @@ public class PlotManager {
 
     /**
      * Updates the physical border of a plot asynchronously.
-     * Unclaimed plots get OAK_FENCE, claimed plots get NETHER_BRICK_FENCE.
+     * Unclaimed plots get OAK_FENCE, claimed plots have their fence REMOVED (AIR).
      *
      * @param plot the plot whose border should be updated
      */
@@ -393,7 +393,8 @@ public class PlotManager {
             org.bukkit.World world = Bukkit.getWorld(plot.getWorldName());
             if (world == null) return;
 
-            Material fenceMat = plot.getOwnerUUID() == null ? Material.OAK_FENCE : Material.NETHER_BRICK_FENCE;
+            // FENCE DISAPPEARS IF CLAIMED (Requirement: "Nach dem Kauf soll der Zaun verschwinden")
+            Material fenceMat = plot.getOwnerUUID() == null ? Material.OAK_FENCE : Material.AIR;
             
             // Edges (North/South)
             for (int x = plot.getMinX(); x <= plot.getMaxX(); x++) {
@@ -405,13 +406,35 @@ public class PlotManager {
                 setFenceOrCorner(world, plot.getMinX(), z, false, fenceMat);
                 setFenceOrCorner(world, plot.getMaxX(), z, false, fenceMat);
             }
+
+            // Also update the sign if it was bought
+            if (plot.getOwnerUUID() != null) {
+                updateSignToOwner(world, plot);
+            }
         });
     }
 
     private void setFenceOrCorner(org.bukkit.World world, int x, int z, boolean isCorner, Material fenceMat) {
-        int y = getSurfaceY(world, x, z);
-        Material mat = isCorner ? Material.BRICKS : fenceMat;
+        int y = 64; // Surface Y in Architecture 2.0
+        // Corners also disappear if claimed, otherwise they are BRICKS
+        Material mat = (isCorner && fenceMat != Material.AIR) ? Material.BRICKS : fenceMat;
         world.getBlockAt(x, y + 1, z).setType(mat, false);
+    }
+
+    private void updateSignToOwner(org.bukkit.World world, Plot plot) {
+        int signX = (plot.getMinX() + plot.getMaxX()) / 2;
+        int signZ = plot.getMinZ();
+        Block block = world.getBlockAt(signX, 65, signZ);
+        
+        if (block.getType() == Material.OAK_SIGN || block.getType() == Material.OAK_WALL_SIGN) {
+            if (block.getState() instanceof org.bukkit.block.Sign sign) {
+                sign.setLine(0, "§a[VERKAUFT]");
+                sign.setLine(1, "§7ID: #" + plot.getId());
+                sign.setLine(2, "§f" + plot.getOwnerName());
+                sign.setLine(3, "§7Gekauft am " + Instant.now().toString().substring(0, 10));
+                sign.update();
+            }
+        }
     }
 
     private int getSurfaceY(org.bukkit.World world, int x, int z) {

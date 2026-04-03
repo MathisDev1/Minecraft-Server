@@ -10,54 +10,23 @@ import java.util.List;
 import java.util.logging.Logger;
 
 /**
- * Top-level orchestrator for CityBuild city generation.
- *
- * <p>Executes all seven generation phases sequentially.  Computation-heavy
- * phases run asynchronously; every {@code world.getBlockAt().setType()} call
- * is dispatched to the main server thread via
- * {@link org.bukkit.scheduler.BukkitScheduler#runTask(JavaPlugin, Runnable)}.</p>
- *
- * <p>Typical usage:</p>
- * <pre>{@code
- * CityGenerator gen = new CityGenerator(plugin, seed);
- * gen.generate(world, (phase, total, msg) -> sender.sendMessage("[" + phase + "/" + total + "] " + msg),
- *              plots  -> db.savePlots(plots),
- *              roads  -> db.saveRoads(roads));
- * }</pre>
+ * Top-level orchestrator for CityBuild 2.0 generation.
  */
 public class CityGenerator {
 
-    /** Default map radius in blocks (500x500 area). */
     private static final int DEFAULT_RADIUS = 250;
-    private static final int TOTAL_PHASES   = 7;
+    private static final int TOTAL_PHASES   = 4; // Simplified: Terrain, Layout, Roads, Plots
 
-    private final JavaPlugin       plugin;
-    private final long             seed;
-    private final Logger           log;
+    private final JavaPlugin plugin;
+    private final long       seed;
+    private final Logger     log;
 
-    /**
-     * Creates a new CityGenerator.
-     *
-     * @param plugin the owning plugin instance (used for scheduler access)
-     * @param seed   master seed — all sub-generators derive their seeds from this
-     */
     public CityGenerator(JavaPlugin plugin, long seed) {
         this.plugin = plugin;
         this.seed   = seed;
         this.log    = plugin.getLogger();
     }
 
-    /**
-     * Starts the full city generation pipeline asynchronously.
-     *
-     * <p>The method returns immediately; all work is done in a Bukkit async
-     * task.  The {@code callback} receives progress events and is notified on
-     * completion or error.  Block placements are automatically scheduled back
-     * on the main thread.</p>
-     *
-     * @param world    the target world (must already exist and be loaded)
-     * @param callback receiver for progress, completion, and error events
-     */
     public void generate(World world, GenerationProgressCallback callback) {
         int radius = plugin.getConfig().getInt("generator.map-radius", DEFAULT_RADIUS);
 
@@ -71,81 +40,46 @@ public class CityGenerator {
         });
     }
 
-    // =========================================================================
-    // Internal pipeline
-    // =========================================================================
+    private void runGeneration(World world, int radius, GenerationProgressCallback callback) throws InterruptedException {
 
-    /**
-     * Executes all seven phases in order.  Called from the async task started
-     * by {@link #generate(World, GenerationProgressCallback)}.
-     */
-    private void runGeneration(World world, int radius,
-                                GenerationProgressCallback callback) throws InterruptedException {
-
-        // ── Instantiate sub-generators (cheap, no world access) ───────────────
+        // 1. Instantiate sub-generators
         TerrainGenerator terrain = new TerrainGenerator(seed);
-        WaterGenerator   water   = new WaterGenerator(seed ^ 0xBEEFCAFEL, terrain);
-        RoadGenerator    roadGen = new RoadGenerator(seed ^ 0xDEADF00DL, terrain, water);
-        PlotSubdivider   plotter = new PlotSubdivider(seed ^ 0xC0FFEE00L, roadGen, water);
+        RoadGenerator    roadGen = new RoadGenerator(seed ^ 0xDEADF00DL, terrain);
+        PlotSubdivider   plotter = new PlotSubdivider(seed ^ 0xC0FFEE00L, roadGen);
 
-        // ── Phase 1: Terrain (0–25%) ──────────────────────────────────────────
-        progress(callback, 1, 0, "Pre-calculating heightmap...");
-        terrain.precalculateHeightMap(radius); // Async compute
+        // Phase 1: Terrain (0-30%)
+        progress(callback, 1, 0, "Generiere flaches Terrain...");
+        runBatched(terrain.getChunkTasks(world, radius), callback, 1, 0, 30);
 
-        progress(callback, 1, 5, "Forming terrain (batched)...");
-        runBatched(terrain.getChunkTasks(world, radius), callback, 1, 0, 25);
-
-        // ── Phase 2: Rivers (25–35%) ──────────────────────────────────────────
-        progress(callback, 2, 25, "Planning and carving rivers...");
-        runBatched(water.getRiverTasks(world, radius), callback, 2, 25, 35);
-
-        // ── Phase 3: Lakes (35–42%) ───────────────────────────────────────────
-        progress(callback, 3, 35, "Planning and digging lakes...");
-        runBatched(water.getLakeTasks(world, radius), callback, 3, 35, 42);
-
-        // ── Phase 4: Road layout (42–60%, compute, async) ───────────────────
-        progress(callback, 4, 42, "Planning road network...");
+        // Phase 2: Planning (30-45%)
+        progress(callback, 2, 30, "Plane Straßennetz und Grundstücke...");
         List<RoadSegment> roads = roadGen.generateRoads(radius);
-        log.info("[CityGenerator] Road layout complete: " + roads.size() + " segments.");
-
-        // ── Phase 5: Road blocks (60–75%, main thread) ───────────────────────
-        progress(callback, 5, 60, "Paving roads (batched)...");
-        runBatched(roadGen.getPlacementTasks(world, roads), callback, 5, 60, 75);
-
-        // ── Phase 6: Plot subdivision (75–92%, compute, async) ───────────────
-        progress(callback, 6, 75, "Subdividing plots...");
         List<Plot> plots = plotter.subdivide(world, radius);
-        log.info("[CityGenerator] Plot layout complete: " + plots.size() + " plots.");
+        progress(callback, 2, 45, "Planung abgeschlossen.");
 
-        // ── Phase 7: Plot borders (92–100%, main thread) ─────────────────────
-        progress(callback, 7, 92, "Placing plot borders (batched)...");
-        runBatched(plotter.getBorderTasks(world, plots), callback, 7, 92, 100);
+        // Phase 3: Roads (45-75%)
+        progress(callback, 3, 45, "Baue Straßen...");
+        runBatched(roadGen.getPlacementTasks(world, roads), callback, 3, 45, 75);
 
-        // ── Done ──────────────────────────────────────────────────────────────
+        // Phase 4: Plots (75-100%)
+        progress(callback, 4, 75, "Setze Grundstückszäune und Verkaufsschilder...");
+        runBatched(plotter.getBorderTasks(world, plots), callback, 4, 75, 100);
+
         log.info("[CityGenerator] City generation complete.");
         callback.onComplete(plots, roads);
     }
 
-    // =========================================================================
-    // Helpers
-    // =========================================================================
-
-    /** Sends a progress event to the callback. */
     private void progress(GenerationProgressCallback callback, int phase, int percentage, String message) {
         log.info("[CityGenerator] Phase " + phase + "/" + TOTAL_PHASES + " (" + percentage + "%) — " + message);
         callback.onProgress(phase, TOTAL_PHASES, message);
     }
 
-    /**
-     * Executes a list of tasks on the main thread in batches.
-     * Processes 10 tasks per tick by default to keep the server responsive.
-     */
     private void runBatched(List<Runnable> tasks, GenerationProgressCallback callback, 
                             int phase, int startPct, int endPct) throws InterruptedException {
         if (tasks.isEmpty()) return;
 
         int totalTasks = tasks.size();
-        int tasksPerTick = 10; // Adjust based on performance
+        int tasksPerTick = 12; // Flat world is faster, can do more tasks
         int[] completed = {0};
         Object lock = new Object();
         boolean[] finished = {false};
@@ -160,6 +94,11 @@ public class CityGenerator {
                 completed[0]++;
             }
 
+            int currentPct = startPct + (int) ((endPct - startPct) * ((double) completed[0] / totalTasks));
+            if (completed[0] % 20 == 0 || completed[0] >= totalTasks) {
+                callback.onProgress(phase, TOTAL_PHASES, "Fortschritt: " + currentPct + "% (" + completed[0] + "/" + totalTasks + ")");
+            }
+
             if (completed[0] >= totalTasks) {
                 synchronized (lock) {
                     finished[0] = true;
@@ -167,7 +106,7 @@ public class CityGenerator {
                 }
                 task.cancel();
             }
-        }, 1L, 1L);
+        }, 1L, 1L); // Run every tick for speed
 
         synchronized (lock) {
             while (!finished[0]) {

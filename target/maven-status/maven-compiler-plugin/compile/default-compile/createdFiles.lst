@@ -8,6 +8,7 @@ de\citybuild\core\commands\SetupCommand.class
 de\citybuild\core\generator\RoadGenerator.class
 de\citybuild\core\commands\SetupCommand$EmptyChunkGenerator.class
 de\citybuild\core\util\PlotUtil.class
+de\citybuild\core\listener\PlotSignListener.class
 de\citybuild\core\manager\SpawnManager.class
 de\citybuild\core\gui\PlotInfoGUI.class
 de\citybuild\core\listener\BlockInteractListener.class
@@ -15,7 +16,6 @@ de\citybuild\core\generator\PlotSubdivider.class
 de\citybuild\core\config\CoreConfig.class
 de\citybuild\core\commands\SetupCommand$1.class
 de\citybuild\core\listener\PlayerMoveListener.class
-de\citybuild\core\generator\WaterGenerator.class
 de\citybuild\core\database\DatabaseManager$ResultSetHandler.class
 de\citybuild\core\listener\PlotProtectionListener.class
 de\citybuild\core\api\events\PlotEnterEvent.class
@@ -23,12 +23,12 @@ de\citybuild\core\api\CityBuildAPI$EconomyProvider.class
 de\citybuild\core\api\CityBuildAPI.class
 de\citybuild\core\generator\SimplexNoise.class
 de\citybuild\core\database\DatabaseManager.class
-de\citybuild\core\generator\RoadGenerator$1.class
 de\citybuild\core\util\MessageUtil.class
 de\citybuild\core\CityBuildCore.class
 de\citybuild\core\commands\PlotCommand.class
 de\citybuild\core\generator\District.class
 de\citybuild\core\commands\PlotCommand$1.class
+de\citybuild\core\listener\PlotSignListener$1.class
 de\citybuild\core\database\PlotRepository.class
 de\citybuild\core\api\CityBuildAPIImpl$1.class
 de\citybuild\core\model\Plot$PlotType.class
